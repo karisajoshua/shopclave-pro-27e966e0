@@ -6,7 +6,7 @@ import { Star, Phone, Globe, MapPin, ChevronRight, ShieldCheck, RotateCcw, Share
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const FASHION_CATEGORY_ID = "a0000001-0000-0000-0000-000000000002";
-import ProductCard from "@/components/marketplace/ProductCard";
+import ProductRecommendations from "@/components/product/ProductRecommendations";
 import { Button } from "@/components/ui/button";
 import { useState, useMemo, useEffect } from "react";
 import CountdownTimer from "@/components/shared/CountdownTimer";
@@ -795,7 +795,7 @@ const ProductDetailPage = () => {
         {/* Reviews are now inside the tabs */}
 
         {/* Related Products */}
-        <RelatedProducts categoryId={product.category_id} currentProductId={product.id} />
+        <ProductRecommendations product={product as any} />
 
         {/* Spacer for floating bar on mobile */}
         <div className="h-20 md:hidden" />
@@ -868,52 +868,6 @@ const ProductDetailPage = () => {
         />
       )}
     </MarketplaceLayout>
-  );
-};
-
-const RelatedProducts = ({ categoryId, currentProductId }: { categoryId: string | null; currentProductId: string }) => {
-  const { formatPrice } = useLocale();
-
-  const { data: related } = useQuery({
-    queryKey: ["related-products", categoryId, currentProductId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*, product_images(url, position), vendors(store_name)")
-        .eq("status", "active")
-        .eq("category_id", categoryId!)
-        .neq("id", currentProductId)
-        .limit(8);
-      return data || [];
-    },
-    enabled: !!categoryId,
-  });
-
-  if (!related?.length) return null;
-
-  return (
-    <div className="mt-10">
-      <h2 className="text-xl font-bold mb-4">You May Also Like</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {related.map((p: any) => {
-          const imgs = (p.product_images || []).sort((a: any, b: any) => a.position - b.position);
-          return (
-            <ProductCard
-              key={p.id}
-              id={p.id}
-              name={p.name}
-              slug={p.slug}
-              price={p.price}
-              compareAtPrice={p.compare_at_price}
-              image={imgs[0]?.url || "/placeholder.svg"}
-              vendorId={p.vendor_id}
-              vendorName={(p.vendors as any)?.store_name || ""}
-              dealEndsAt={p.deal_ends_at}
-            />
-          );
-        })}
-      </div>
-    </div>
   );
 };
 
